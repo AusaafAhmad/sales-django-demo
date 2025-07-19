@@ -16,10 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from descriptive.views import SalesSummaryView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/summary/',SalesSummaryView.as_view(), name="sales-summary"),
     path('',include('descriptive.urls')),
 ]

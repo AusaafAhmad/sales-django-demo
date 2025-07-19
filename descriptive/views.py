@@ -4,54 +4,58 @@ import pandas as pd
 from django.http import JsonResponse
 import os
 
-class SalesSummaryView(View):
-
-    def get(self, request):
-        # path =  os.path.join(os.path.dirname(os.path.dirname(__file__), 'sales_data.csv'))
-        csv = "/home/metal/Desktop/ml/sales_data.csv"
-        df = pd.read_csv(csv)
-        summary =  {
-            'total_sales': float(df['TotalPrice'].sum()),
-            'total_quantity' : int(df['Quantity'].sum()),
-            'average_unit_price': float(df['UnitPrice'].mean()),
-            'products': df['ProductName'].nunique(),
-            'states': df['State'].nunique()
-        }
-
-        return JsonResponse(summary)
-    
-
-    
-    
-
-    
-def summary_page(request):
-    return render(request, 'descriptive/summary.html')
-
-def sales_per_state_page(request):
-    return render(request, 'descriptive/sales_per_state.html')
-
-def sales_per_product_page(request):
-    return render(request, 'descriptive/sales_per_product.html')
-
-def analysis_page(request):
-    return render(request, 'descriptive/analysis.html')
-
-
-def sales_per_state(req):
-    csv = "/home/metal/Desktop/ml/sales_data.csv"
+def cpu_summary(request):
+    csv = "/home/metal/Desktop/ml/cpu_data.csv"
     df = pd.read_csv(csv)
-    state_sales  =  df.groupby("State")["TotalPrice"].sum().reset_index()
-    state_sales = state_sales.sort_values("TotalPrice",ascending=False)
-    data =  state_sales.to_dict(orient="records")
 
-    return JsonResponse({"sales_per_state": data})
+    df = df.dropna(subset=['price', 'cpuMark', 'cpuValue', 'threadMark', 'powerPerf'])
+    df['price'] = pd.to_numeric(df['price'], errors='coerce')
+    df['cpuMark'] = pd.to_numeric(df['cpuMark'], errors='coerce')
+    df['cpuValue'] = pd.to_numeric(df['cpuValue'], errors='coerce')
+    df['threadMark'] = pd.to_numeric(df['threadMark'], errors='coerce')
+    df['powerPerf'] = pd.to_numeric(df['powerPerf'], errors='coerce')
+    top_cpu = df.loc[df['cpuMark'].idxmax()]['cpuName']
+    best_value_cpu = df.loc[df['cpuValue'].idxmax()]['cpuName']
+    best_thread_cpu = df.loc[df['threadMark'].idxmax()]['cpuName']
+    best_power_cpu = df.loc[df['powerPerf'].idxmax()]['cpuName']
+    median_price = df['price'].median()
+    budget_df = df[df['price'] <= median_price]
+    best_budget_cpu = budget_df.loc[budget_df['cpuMark'].idxmax()]['cpuName']
 
-def sale_per_prod(req):
-    csv = "/home/metal/Desktop/ml/sales_data.csv"
+    summary = {
+        "top_cpu": top_cpu,
+        "most_price_efficient_cpu": best_value_cpu,
+        "best_multithreaded_cpu": best_thread_cpu,
+        "most_power_efficient_cpu": best_power_cpu,
+        "best_budget_cpu": best_budget_cpu
+    }
+
+    return JsonResponse(summary)
+
+
+def cpu_graph_data(request):
+    csv = "/home/metal/Desktop/ml/cpu_data.csv"
     df = pd.read_csv(csv)
-    prod_sales =  df.groupby("ProductName")["TotalPrice"].sum().reset_index()
-    prod_sales = prod_sales.sort_values("TotalPrice",ascending=False)
-    data =  prod_sales.to_dict(orient="records")
 
-    return JsonResponse({"sales_per_product": data})
+    df = df.dropna(subset=['price', 'cpuMark', 'cpuValue'])
+    df['price'] = pd.to_numeric(df['price'], errors='coerce')
+    df['cpuMark'] = pd.to_numeric(df['cpuMark'], errors='coerce')
+    df['cpuValue'] = pd.to_numeric(df['cpuValue'], errors='coerce')
+    top10 = df.nlargest(10, 'cpuMark')[['cpuName', 'cpuMark']].to_dict(orient='records')
+    scatter_data = df[['cpuName', 'price', 'cpuMark', 'cpuValue']].to_dict(orient='records')
+
+    return JsonResponse({
+        "bar_chart_top10": top10,
+        "scatter_plot_data": scatter_data
+    })
+def cpu_dashboard_page(request):
+    return render(request, 'descriptive/cpu_dashboard.html')
+
+def cpu_bar_chart_page(request):
+    return render(request, 'descriptive/cpu_bar_chart.html')
+
+def cpu_scatter_plot_page(request):
+    return render(request, 'descriptive/cpu_scatter_plot.html')
+
+def cpu_summary_page(request):
+    return render(request, 'descriptive/cpu_summary.html')

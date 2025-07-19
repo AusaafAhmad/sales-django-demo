@@ -1,12 +1,11 @@
 from django.urls import path
-from .views import sale_per_prod,summary_page,sales_per_state, analysis_page,sales_per_state_page,sales_per_product_page
+from .views import cpu_summary, cpu_graph_data, cpu_bar_chart_page, cpu_scatter_plot_page,cpu_dashboard_page,cpu_summary_page
 
 urlpatterns = [
-    path('summary/', summary_page, name='summary-page'),
-    path('analysis/', analysis_page, name='analysis-page'),
-    path('sales-per-state/', sales_per_state_page, name='salesperstate-page'),
-    path('sales-per-product/', sales_per_product_page, name='salesperproduct-page'),
-
-    path('api/sales_per_state/',sales_per_state, name='sales-page-state'),
-    path('api/sales_per_product/',sale_per_prod, name='sale-page-prod')
+    path('api/cpu/summary/', cpu_summary, name='cpu-summary'),
+    path('api/cpu/graph-data/', cpu_graph_data, name='cpu-graph-data'),
+    path('cpu/bar-chart/', cpu_bar_chart_page, name='cpu-bar-chart'),
+    path('cpu/scatter-plot/', cpu_scatter_plot_page, name='cpu-scatter-plot'),
+    path('cpu/dashboard/', cpu_dashboard_page, name='cpu-dashboard'),
+    path('cpu/summary/', cpu_summary_page, name='cpu-summary-page'),
 ]
