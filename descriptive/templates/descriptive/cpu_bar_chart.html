@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Top 10 CPUs by Performance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Top 10 CPUs by Performance (cpuMark)</h2>
+    <canvas id="cpuBarChart" width="800" height="400"></canvas>
+
+    <script>
+        fetch('/api/cpu/graph-data/')
+            .then(response => response.json())
+            .then(data => {
+                const chartData = data.bar_chart_top10;
+                const labels = chartData.map(cpu => cpu.cpuName);
+                const cpuMarks = chartData.map(cpu => cpu.cpuMark);
+
+                new Chart(document.getElementById('cpuBarChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'cpuMark',
+                            data: cpuMarks,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Performance Score'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'CPU Name'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

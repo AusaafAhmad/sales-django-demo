@@ -1,0 +1,19 @@
+<h2>CPU Summary</h2>
+<div id="summary-container">
+    <div class="summary-card" id="top_cpu"></div>
+    <div class="summary-card" id="price_efficient"></div>
+    <div class="summary-card" id="best_thread"></div>
+    <div class="summary-card" id="power_efficient"></div>
+    <div class="summary-card" id="budget_cpu"></div>
+</div>
+<script>
+    fetch('/api/cpu/summary/')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('top_cpu').textContent = "Top Overall CPU: " + data.top_cpu;
+            document.getElementById('price_efficient').textContent = "Most Price Efficient CPU: " + data.most_price_efficient_cpu;
+            document.getElementById('best_thread').textContent = "Best Multi-threaded CPU: " + data.best_multithreaded_cpu;
+            document.getElementById('power_efficient').textContent = "Most Power Efficient CPU: " + data.most_power_efficient_cpu;
+            document.getElementById('budget_cpu').textContent = "Best Budget CPU: " + data.best_budget_cpu;
+        });
+</script>

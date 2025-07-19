@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CPU Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-top: 40px;
+        }
+        .summary-card {
+            background-color: #f2f2f2;
+            border-left: 6px solid #007acc;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        canvas {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .chart-container {
+            flex: 1;
+            min-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CPU Performance Dashboard</h1>
+
+    <h2>Summary</h2>
+    <div id="summary-container">
+        <div class="summary-card" id="top_cpu"></div>
+        <div class="summary-card" id="price_efficient"></div>
+        <div class="summary-card" id="best_thread"></div>
+        <div class="summary-card" id="power_efficient"></div>
+        <div class="summary-card" id="budget_cpu"></div>
+    </div>
+
+    <div class="charts">
+        <div class="chart-container">
+            <h2>Top 10 CPUs by Performance</h2>
+            <canvas id="cpuBarChart" width="600" height="400"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>CPU Price vs Performance</h2>
+            <canvas id="cpuScatterChart" width="600" height="400"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Load Summary
+        fetch('/api/cpu/summary/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('top_cpu').textContent = "Top Overall CPU: " + data.top_cpu;
+                document.getElementById('price_efficient').textContent = "Most Price Efficient CPU: " + data.most_price_efficient_cpu;
+                document.getElementById('best_thread').textContent = "Best Multi-threaded CPU: " + data.best_multithreaded_cpu;
+                document.getElementById('power_efficient').textContent = "Most Power Efficient CPU: " + data.most_power_efficient_cpu;
+                document.getElementById('budget_cpu').textContent = "Best Budget CPU: " + data.best_budget_cpu;
+            });
+
+        // Load Chart Data
+        fetch('/api/cpu/graph-data/')
+            .then(res => res.json())
+            .then(data => {
+                // Bar Chart
+                const barLabels = data.bar_chart_top10.map(cpu => cpu.cpuName);
+                const barScores = data.bar_chart_top10.map(cpu => cpu.cpuMark);
+
+                new Chart(document.getElementById('cpuBarChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: barLabels,
+                        datasets: [{
+                            label: 'cpuMark',
+                            data: barScores,
+                            backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                            borderColor: 'rgba(0, 123, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Performance Score'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Scatter Plot
+                const scatterPoints = data.scatter_plot_data.map(cpu => ({
+                    x: cpu.price,
+                    y: cpu.cpuMark,
+                    r: Math.sqrt(cpu.cpuValue) * 2,
+                    label: cpu.cpuName
+                }));
+
+                new Chart(document.getElementById('cpuScatterChart'), {
+                    type: 'bubble',
+                    data: {
+                        datasets: [{
+                            label: 'CPUs',
+                            data: scatterPoints,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const data = context.raw;
+                                        return `${data.label}: ₹${data.x}, Mark: ${data.y}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Price ($)' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Performance (cpuMark)' }
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

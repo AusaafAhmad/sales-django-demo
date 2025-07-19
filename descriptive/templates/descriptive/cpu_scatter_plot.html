@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CPU Price vs Performance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>CPU Price vs Performance (Scatter Plot)</h2>
+    <canvas id="cpuScatterChart" width="800" height="400"></canvas>
+
+    <script>
+        fetch('/api/cpu/graph-data/')
+            .then(response => response.json())
+            .then(data => {
+                const scatterData = data.scatter_plot_data;
+
+                const chartPoints = scatterData.map(cpu => ({
+                    x: cpu.price,
+                    y: cpu.cpuMark,
+                    r: Math.sqrt(cpu.cpuValue) * 2, // radius by cpuValue
+                    label: cpu.cpuName
+                }));
+
+                new Chart(document.getElementById('cpuScatterChart'), {
+                    type: 'bubble',
+                    data: {
+                        datasets: [{
+                            label: 'CPU',
+                            data: chartPoints,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const data = context.raw;
+                                        return `${data.label}: ₹${data.x}, Mark: ${data.y}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Price ($)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Performance (cpuMark)'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
